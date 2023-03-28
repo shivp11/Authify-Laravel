@@ -20,7 +20,11 @@ class ForgotPasswordController extends Controller
         $email = $request->email;
 
         if(User::where('email', $request->email)->doesntExist()){
-            return response(['message'=>'Email Does not exists.'], 200);
+            return response([
+                'status' => 'Failed',
+                'code'=> 402,
+                'message' => 'Email Does not exists.',
+            ], 402);
         }
 
         $token = Str::random(10);
@@ -41,9 +45,12 @@ class ForgotPasswordController extends Controller
             $message->to($email);
             $message->subject('Reset Your Password');
         });
-
-
-        return response(['message' => 'Check your email.'], 200);
+        return response([
+            'data' => $user,
+            'status' => 'Success',
+            'code'=> 200,
+            'message' => 'Check your email.',
+        ], 200);
     }
 
     public function reset(Request $request){
@@ -57,18 +64,30 @@ class ForgotPasswordController extends Controller
 
         // Verify
         if(!$passwordRest){
-            return response(['message' => 'Token Not Found.'], 200);
+            return response([
+                'status' => 'Failed',
+                'code'=> 402,
+                'message' => 'Token Not Found.',
+            ], 402);
         }
 
         // Validate exipire time
         if(!$passwordRest->created_at >= now()){
-            return response(['message' => 'Token has expired.'], 200);
+            return response([
+                'status' => 'Failed',
+                'code'=> 402,
+                'message' => 'Token has expired.',
+            ], 402);
         }
 
         $user = User::where('email', $passwordRest->email)->first();
 
         if(!$user){
-            return response(['message' => 'User does not exists.'], 200);
+            return response([
+                'status' => 'Failed',
+                'code'=> 402,
+                'message' => 'User does not exists.',
+            ], 402);
         }
 
         $user->password = Hash::make($request->password);
@@ -76,6 +95,11 @@ class ForgotPasswordController extends Controller
 
         DB::table('password_resets')->where('token', $token)->delete();;
 
-        return response(['message'=>'Password Successfully Updated.'], 200);
+        return response([
+            'data' => $user,
+            'status' => 'Success',
+            'code'=> 200,
+            'message' => 'Password Successfully Updated.',
+        ], 200);
     }
 }

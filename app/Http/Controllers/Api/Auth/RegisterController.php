@@ -16,21 +16,39 @@ class RegisterController extends Controller
             'email' => 'required|unique:users',
             'password' => 'required|confirmed',
         ]);
+        $defaultImg = 'Profile.jpeg';
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'Subscriber',
+            'profile' => $defaultImg,
         ]);
-        return response(['message' => 'User Successfully Register.'], 200);
+        return response([
+            'data' => $user,
+            'status' => 'Success',
+            'code'=> 200,
+            'message' => 'User Successfully Register.',
+        ], 200);
     }
 
     public function updateProfile($id, Request $request){
-        $this->validate($request, [
-            'name' => 'required',
-        ]);
         $user = User::find($id);
         $user->name = $request->name;
-        $user->save();
-        return response(['message' => $user], 200);
+        $result = $user->save();
+        if($result){
+            return response([
+                'data' => $user,
+                'status' => 'Success',
+                'code'=> 200,
+                'message' => 'Profile Updated!!',
+            ], 200);
+        }else{
+            return response([
+                'status' => 'Failed',
+                'code'=> 402,
+                'message' => 'Something went Wrong!!',
+            ], 402);
+        }
     }
 }
